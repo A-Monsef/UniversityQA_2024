@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import java.util.Random;
+import java.util.List;
+import org.openqa.selenium.support.ui.Select;
+
 
 public class InventarioSuite {
     public static WebDriver driver;
@@ -246,8 +249,59 @@ public class InventarioSuite {
         inputPassword.sendKeys("secret_sauce");
         WebElement button = driver.findElement(By.id("login-button"));
         button.click();
-    }
 
+        // Seleccionar el filtro "PRICE (low to high)"
+        WebElement filterProduct = driver.findElement(By.className("product_sort_container"));
+        Select dropdown = new Select(filterProduct);
+        dropdown.selectByVisibleText("Price (low to high)");
+
+        // Intentar obtener la lista de precios
+        try {
+            List<WebElement> prices = driver.findElements(By.className("inventory_item_price"));
+            double lastPrice = 0.0;
+            for (WebElement priceElement : prices) {
+                String priceText = priceElement.getText().replace("$", "");
+                double price = Double.parseDouble(priceText);
+                assert price >= lastPrice : "Los precios no están ordenados de menor a mayor.";
+                lastPrice = price;
+            }
+        } catch (Exception e) {
+            // Manejo específico de la excepción para la lista de precios
+            e.printStackTrace();
+            throw new AssertionError("Error al obtener o procesar la lista de precios: " + e.getMessage());
+        }
+    }
+    @Test
+    public void testFilterZToA() {
+        driver.get("https://www.saucedemo.com");
+        WebElement inputName = driver.findElement(By.id("user-name"));
+        inputName.sendKeys("standard_user");
+        WebElement inputPassword = driver.findElement(By.id("password"));
+        inputPassword.sendKeys("secret_sauce");
+        WebElement button = driver.findElement(By.id("login-button"));
+        button.click();
+
+        // Seleccionar el filtro "NAME (Z to A)"
+        WebElement filterProduct = driver.findElement(By.className("product_sort_container"));
+        Select dropdown = new Select(filterProduct);
+        dropdown.selectByVisibleText("Name (Z to A)");
+
+        List<WebElement> productNames = driver.findElements(By.className("inventory_item_name"));
+        String lastName = "ZZZZ"; // Inicializa con un valor que siempre será mayor alfabéticamente
+        for (WebElement productNameElement : productNames) {
+            String productName = productNameElement.getText();
+            System.out.println("Comparando: " + lastName + " con " + productName); // Impresión para depuración
+            try {
+                productNameElement.isEnabled();
+            } catch (NoSuchElementException nsee) {
+                nsee.printStackTrace();
+                throw new AssertionError("El elemento del producto no está presente: " + nsee.getMessage());
+            }
+            assert productName.compareTo(lastName) <= 0 : "Los productos no están ordenados de Z a A. Problema con: " + productName;
+            lastName = productName;
+        }
+
+    }
     @Test
     public void Ejerciciojunit(){
         String[] nombresEsperados = {"java ","junit","jboss"};

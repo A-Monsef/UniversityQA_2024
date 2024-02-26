@@ -302,11 +302,6 @@ public class InventarioSuite {
         }
 
     }
-    @Test
-    public void Ejerciciojunit(){
-        String[] nombresEsperados = {"java ","junit","jboss"};
-        String[] nombres;
-    }
 
     @After
     public void tearDown() {
